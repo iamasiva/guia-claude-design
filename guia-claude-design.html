@@ -1287,10 +1287,12 @@
     var btn     = document.getElementById('toggle');
     if (open) {
       sidebar.classList.remove('collapsed');
+      sidebar.classList.add('open');
       mainEl.classList.remove('full');
       btn.classList.add('open');
     } else {
       sidebar.classList.add('collapsed');
+      sidebar.classList.remove('open');
       mainEl.classList.add('full');
       btn.classList.remove('open');
     }
