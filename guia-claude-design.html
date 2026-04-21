@@ -684,7 +684,9 @@
     .tip-body p { font-size: 14px; color: var(--text-muted); margin: 0; }
 
     /* ─── NAV BUTTONS ───────────────────────────────────────── */
-    .nav-btns { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .nav-btns { margin-top: 36px; display: flex; gap: 12px; flex-wrap: nowrap; }
+    .nav-btns .btn-back { flex-shrink: 0; }
+    .nav-btns .btn-next { flex: 1; justify-content: center; }
     .btn-back {
       display: inline-flex; align-items: center; gap: 8px;
       background: transparent;
