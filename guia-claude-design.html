@@ -273,10 +273,12 @@
       transition: all 0.2s;
       letter-spacing: .2px;
     }
-    .cta-btn:hover {
-      background: #BF541F;
-      transform: translateY(-1px);
-      box-shadow: 0 6px 20px rgba(212,98,42,.4);
+    @media (hover: hover) {
+      .cta-btn:hover {
+        background: #BF541F;
+        transform: translateY(-1px);
+        box-shadow: 0 6px 20px rgba(212,98,42,.4);
+      }
     }
 
     /* ─── STEP HEADER ───────────────────────────────────────── */
@@ -692,7 +694,6 @@
       font-size: 14px; font-weight: 600;
       cursor: pointer; transition: all .2s;
     }
-    .btn-back:hover { border-color: var(--orange); color: var(--orange); }
     .btn-next {
       display: inline-flex; align-items: center; gap: 8px;
       background: var(--orange);
@@ -703,10 +704,13 @@
       font-size: 15px; font-weight: 700;
       cursor: pointer; transition: all .2s;
     }
-    .btn-next:hover {
-      background: #BF541F;
-      transform: translateY(-1px);
-      box-shadow: 0 5px 14px rgba(212,98,42,.35);
+    @media (hover: hover) {
+      .btn-back:hover { border-color: var(--orange); color: var(--orange); }
+      .btn-next:hover {
+        background: #BF541F;
+        transform: translateY(-1px);
+        box-shadow: 0 5px 14px rgba(212,98,42,.35);
+      }
     }
 
     /* ─── DIVIDER ───────────────────────────────────────────── */
