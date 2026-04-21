@@ -1,0 +1,1357 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Guía: Claude Design</title>
+  <style>
+    :root {
+      --bg:           #FEFAF6;
+      --surface:      #FFFFFF;
+      --orange:       #D4622A;
+      --orange-light: #F5E6DC;
+      --orange-mid:   #E8864A;
+      --text:         #1C1007;
+      --text-muted:   #7A6652;
+      --border:       #EDE0D4;
+      --sidebar-bg:   #FFF5EE;
+      --sidebar-w:    262px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.75;
+      font-size: 16px;
+    }
+
+    /* ─── PROGRESS BAR ──────────────────────────────────────── */
+    .progress-bar {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--orange-light);
+      z-index: 500;
+    }
+    .progress-fill {
+      height: 100%;
+      background: var(--orange);
+      transition: width 0.35s ease;
+    }
+
+    /* ─── SIDEBAR TOGGLE ────────────────────────────────────── */
+    .sidebar-toggle {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      z-index: 400;
+      width: 38px;
+      height: 38px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 9px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 1px 6px rgba(0,0,0,0.08);
+      transition: all 0.2s;
+    }
+    .sidebar-toggle:hover {
+      background: var(--orange-light);
+      border-color: var(--orange);
+    }
+    .sidebar-toggle.open { left: calc(var(--sidebar-w) + 14px); }
+
+    /* ─── SIDEBAR ───────────────────────────────────────────── */
+    .sidebar {
+      position: fixed;
+      top: 0; left: 0;
+      width: var(--sidebar-w);
+      height: 100vh;
+      background: var(--sidebar-bg);
+      border-right: 1px solid var(--border);
+      display: flex;
+      flex-direction: column;
+      z-index: 300;
+      transition: transform 0.3s ease;
+    }
+    .sidebar.collapsed { transform: translateX(calc(-1 * var(--sidebar-w))); }
+
+    .sidebar-head {
+      padding: 22px 20px 18px;
+      border-bottom: 1px solid var(--border);
+    }
+    .sidebar-brand {
+      font-size: 10px;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 3px;
+    }
+    .sidebar-guide-name {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text);
+    }
+
+    .sidebar-nav {
+      flex: 1;
+      overflow-y: auto;
+      padding: 14px 0;
+    }
+    .nav-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 10px 20px;
+      cursor: pointer;
+      font-size: 13.5px;
+      font-weight: 500;
+      color: var(--text-muted);
+      border-left: 3px solid transparent;
+      transition: all 0.15s;
+      user-select: none;
+    }
+    .nav-item:hover { background: var(--orange-light); color: var(--text); }
+    .nav-item.active {
+      border-left-color: var(--orange);
+      background: var(--orange-light);
+      color: var(--orange);
+      font-weight: 700;
+    }
+    .nav-dot {
+      flex-shrink: 0;
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      border: 2px solid var(--border);
+      transition: all 0.2s;
+    }
+    .nav-item.active .nav-dot,
+    .nav-item.done .nav-dot {
+      background: var(--orange);
+      border-color: var(--orange);
+    }
+    .nav-item.done { color: var(--text-muted); }
+    .nav-step-label { flex: 1; }
+
+    /* ─── MAIN ──────────────────────────────────────────────── */
+    .main {
+      margin-left: var(--sidebar-w);
+      min-height: 100vh;
+      transition: margin-left 0.3s ease;
+    }
+    .main.full { margin-left: 0; }
+
+    /* ─── SECTION VISIBILITY ────────────────────────────────── */
+    .section { display: none; }
+    .section.active { display: block; }
+
+    /* ─── HERO ──────────────────────────────────────────────── */
+    .hero {
+      background: var(--text);
+      color: white;
+      padding: 84px 52px 68px;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: -80px; right: -80px;
+      width: 480px; height: 480px;
+      background: radial-gradient(circle, rgba(212,98,42,.18) 0%, transparent 68%);
+      pointer-events: none;
+    }
+    .hero-inner { max-width: 700px; position: relative; }
+    .eyebrow {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange-mid);
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 54px);
+      font-weight: 800;
+      line-height: 1.08;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--orange); }
+    .hero-sub {
+      font-size: 18px;
+      color: #B8A898;
+      max-width: 520px;
+      margin-bottom: 52px;
+      line-height: 1.65;
+    }
+
+    /* Plans block */
+    .before-block {
+      background: rgba(255,255,255,.05);
+      border: 1px solid rgba(255,255,255,.1);
+      border-radius: 16px;
+      padding: 32px;
+      max-width: 700px;
+      margin-bottom: 44px;
+    }
+    .before-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 10px;
+    }
+    .before-block h3 {
+      font-size: 18px;
+      font-weight: 700;
+      color: white;
+      margin-bottom: 6px;
+    }
+    .before-block p {
+      font-size: 14px;
+      color: #B8A898;
+      margin-bottom: 20px;
+    }
+    .plans-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      gap: 12px;
+    }
+    .plan-card {
+      background: rgba(255,255,255,.07);
+      border: 1px solid rgba(255,255,255,.12);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .plan-card.featured {
+      border-color: var(--orange);
+      background: rgba(212,98,42,.15);
+    }
+    .plan-name {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      color: #8A7A6A;
+      margin-bottom: 4px;
+    }
+    .plan-card.featured .plan-name { color: var(--orange); }
+    .plan-desc { font-size: 12px; color: #C0B0A0; line-height: 1.5; }
+    .plan-tag {
+      display: inline-block;
+      background: var(--orange);
+      color: white;
+      font-size: 9px;
+      font-weight: 700;
+      padding: 2px 8px;
+      border-radius: 999px;
+      margin-top: 6px;
+      letter-spacing: .5px;
+      text-transform: uppercase;
+    }
+
+    /* ─── CTA BUTTON ────────────────────────────────────────── */
+    .cta-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 16px 32px;
+      border-radius: 12px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+      letter-spacing: .2px;
+    }
+    .cta-btn:hover {
+      background: #BF541F;
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(212,98,42,.4);
+    }
+
+    /* ─── STEP HEADER ───────────────────────────────────────── */
+    .step-header {
+      background: var(--surface);
+      border-bottom: 1px solid var(--border);
+      padding: 44px 52px 36px;
+    }
+    .step-label {
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .step-header h2 {
+      font-size: clamp(24px, 3.5vw, 36px);
+      font-weight: 800;
+      color: var(--text);
+      line-height: 1.18;
+    }
+    .step-header .step-sub {
+      font-size: 16px;
+      color: var(--text-muted);
+      margin-top: 10px;
+    }
+
+    /* ─── STEP BODY ─────────────────────────────────────────── */
+    .step-body {
+      padding: 44px 52px 52px;
+      max-width: 780px;
+    }
+    p { margin-bottom: 16px; }
+    p:last-child { margin-bottom: 0; }
+    strong { font-weight: 700; }
+    .muted { color: var(--text-muted); }
+
+    /* ─── INTERFACE PREVIEW ─────────────────────────────────── */
+    .interface-preview {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      overflow: hidden;
+      margin: 28px 0;
+    }
+    .i-topbar {
+      background: #F5EFE9;
+      border-bottom: 1px solid var(--border);
+      padding: 10px 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mac-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .mac-dot.r { background: #FF5F57; }
+    .mac-dot.y { background: #FFBD2E; }
+    .mac-dot.g { background: #28C840; }
+    .i-split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      min-height: 190px;
+    }
+    .i-chat {
+      padding: 20px;
+      border-right: 1px solid var(--border);
+    }
+    .i-canvas {
+      padding: 20px;
+      background: #F8F2EC;
+    }
+    .i-pane-label {
+      font-size: 9px;
+      font-weight: 700;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 14px;
+    }
+    .bubble {
+      background: var(--orange-light);
+      border-radius: 3px 10px 10px 10px;
+      padding: 10px 14px;
+      font-size: 12.5px;
+      color: var(--text);
+      margin-bottom: 8px;
+      max-width: 86%;
+      line-height: 1.5;
+    }
+    .bubble.reply {
+      background: var(--orange);
+      color: white;
+      border-radius: 10px 3px 10px 10px;
+      margin-left: auto;
+    }
+    .canvas-mock {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 14px;
+    }
+    .bar {
+      height: 7px;
+      border-radius: 4px;
+      background: var(--orange-light);
+      margin-bottom: 7px;
+    }
+    .bar.a { background: var(--orange); width: 58%; }
+    .bar.b { width: 82%; }
+    .bar.c { width: 44%; }
+    .bar.d { width: 70%; }
+
+    /* ─── ITEM LIST ─────────────────────────────────────────── */
+    .items-list {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+      margin: 28px 0;
+    }
+    .list-item {
+      display: flex;
+      gap: 18px;
+      align-items: flex-start;
+    }
+    .list-icon {
+      flex-shrink: 0;
+      width: 38px; height: 38px;
+      background: var(--orange-light);
+      color: var(--orange);
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-top: 2px;
+    }
+    .list-body h4 {
+      font-size: 15px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 4px;
+    }
+    .list-body p { font-size: 14.5px; color: var(--text-muted); margin: 0; }
+
+    /* ─── PROMPT BOX ────────────────────────────────────────── */
+    .prompt-box {
+      background: var(--orange-light);
+      border-left: 4px solid var(--orange);
+      border-radius: 0 12px 12px 0;
+      padding: 18px 22px;
+      margin: 20px 0;
+    }
+    .prompt-label {
+      font-size: 9px;
+      font-weight: 800;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      color: var(--orange);
+      margin-bottom: 8px;
+    }
+    .prompt-box p {
+      font-size: 15px;
+      color: var(--text);
+      font-style: italic;
+      margin: 0;
+    }
+
+    /* ─── NOTE / TIP ────────────────────────────────────────── */
+    .note {
+      background: #FFF8F0;
+      border: 1px solid #F4C78A;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #92400E;
+      line-height: 1.6;
+    }
+    .note strong { color: #92400E; }
+    .tip {
+      background: #F0FDF4;
+      border: 1px solid #86EFAC;
+      border-radius: 10px;
+      padding: 14px 18px;
+      margin: 16px 0;
+      font-size: 14px;
+      color: #166534;
+      line-height: 1.6;
+    }
+    .tip strong { color: #166534; }
+
+    /* ─── TABLE ─────────────────────────────────────────────── */
+    .guide-table {
+      width: 100%;
+      border-collapse: collapse;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .guide-table th {
+      background: var(--text);
+      color: white;
+      text-align: left;
+      padding: 12px 18px;
+      font-weight: 600;
+      font-size: 13px;
+    }
+    .guide-table td {
+      padding: 12px 18px;
+      border-bottom: 1px solid var(--border);
+      vertical-align: top;
+    }
+    .guide-table tr:last-child td { border-bottom: none; }
+    .guide-table tr:nth-child(even) td { background: var(--bg); }
+    .guide-table td:first-child {
+      font-style: italic;
+      color: var(--orange);
+      font-weight: 600;
+      width: 46%;
+    }
+
+    /* ─── PROMPT BUILDER (interactive) ─────────────────────── */
+    .builder {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 28px;
+      margin: 24px 0;
+    }
+    .builder-title {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      margin-bottom: 20px;
+    }
+    .builder-q {
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+    .type-pills {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+    .type-pill {
+      padding: 8px 18px;
+      border-radius: 999px;
+      border: 1.5px solid var(--border);
+      background: var(--bg);
+      color: var(--text-muted);
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .type-pill:hover { border-color: var(--orange); color: var(--orange); }
+    .type-pill.sel { background: var(--orange); border-color: var(--orange); color: white; }
+
+    .builder-field { display: none; margin-bottom: 14px; }
+    .builder-field.show { display: block; }
+    .b-label {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+    .b-input {
+      width: 100%;
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 14px;
+      color: var(--text);
+      font-family: inherit;
+      outline: none;
+      transition: border-color .15s;
+    }
+    .b-input:focus { border-color: var(--orange); }
+    .b-input::placeholder { color: var(--text-muted); }
+
+    .builder-output {
+      background: var(--text);
+      border-radius: 12px;
+      padding: 20px 22px;
+      margin-top: 20px;
+      display: none;
+      position: relative;
+    }
+    .builder-output.show { display: block; }
+    .output-label {
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: #7A6652;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .output-label::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: rgba(255,255,255,.06);
+    }
+    .output-text {
+      font-family: 'Fira Code', 'Cascadia Code', 'Consolas', monospace;
+      font-size: 13px;
+      color: #E8D0B8;
+      line-height: 1.7;
+      white-space: pre-wrap;
+      word-break: break-word;
+    }
+    .copy-btn-out {
+      position: absolute;
+      top: 14px; right: 14px;
+      background: rgba(255,255,255,.08);
+      border: 1px solid rgba(255,255,255,.12);
+      color: #8090b0;
+      border-radius: 7px;
+      width: 32px; height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all .15s;
+    }
+    .copy-btn-out:hover { background: rgba(255,255,255,.15); color: #E8D0B8; }
+    .copy-btn-out.copied {
+      background: rgba(166,227,161,.15);
+      border-color: rgba(166,227,161,.35);
+      color: #a6e3a1;
+    }
+
+    /* ─── EXPORT GRID ───────────────────────────────────────── */
+    .export-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+      gap: 14px;
+      margin: 24px 0;
+    }
+    .export-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color .2s;
+    }
+    .export-card:hover { border-color: var(--orange); }
+    .export-icon {
+      width: 36px; height: 36px;
+      background: var(--orange-light);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .export-card h4 { font-size: 14px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .export-card p { font-size: 12px; color: var(--text-muted); margin: 0; line-height: 1.5; }
+
+    /* ─── TIPS ──────────────────────────────────────────────── */
+    .tips-list {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      margin-top: 28px;
+    }
+    .tip-card {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      transition: border-color .2s;
+    }
+    .tip-card:hover { border-color: var(--orange); }
+    .tip-num {
+      flex-shrink: 0;
+      width: 32px; height: 32px;
+      background: var(--orange-light);
+      color: var(--orange);
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 14px;
+      font-weight: 800;
+    }
+    .tip-body h4 { font-size: 15px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .tip-body p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    /* ─── NAV BUTTONS ───────────────────────────────────────── */
+    .nav-btns { margin-top: 36px; display: flex; gap: 12px; flex-wrap: wrap; }
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: transparent;
+      color: var(--text-muted);
+      border: 1.5px solid var(--border);
+      padding: 13px 24px;
+      border-radius: 10px;
+      font-size: 14px; font-weight: 600;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-back:hover { border-color: var(--orange); color: var(--orange); }
+    .btn-next {
+      display: inline-flex; align-items: center; gap: 8px;
+      background: var(--orange);
+      color: white;
+      border: none;
+      padding: 14px 28px;
+      border-radius: 10px;
+      font-size: 15px; font-weight: 700;
+      cursor: pointer; transition: all .2s;
+    }
+    .btn-next:hover {
+      background: #BF541F;
+      transform: translateY(-1px);
+      box-shadow: 0 5px 14px rgba(212,98,42,.35);
+    }
+
+    /* ─── DIVIDER ───────────────────────────────────────────── */
+    .divider { height: 1px; background: var(--border); margin: 32px 0; }
+
+    /* ─── FOOTER ────────────────────────────────────────────── */
+    footer {
+      background: var(--text);
+      color: #7A6652;
+      text-align: center;
+      padding: 44px 24px;
+      font-size: 13px;
+      line-height: 2.1;
+    }
+    footer strong { color: white; }
+    footer a { color: var(--orange); text-decoration: none; }
+
+    /* ─── RESPONSIVE ────────────────────────────────────────── */
+    @media (max-width: 720px) {
+      .sidebar { transform: translateX(calc(-1 * var(--sidebar-w))); }
+      .sidebar.open { transform: translateX(0); }
+      .main { margin-left: 0; }
+      .sidebar-toggle.open { left: calc(var(--sidebar-w) + 14px); }
+      .hero { padding: 60px 24px 48px; }
+      .step-header { padding: 36px 24px 28px; }
+      .step-body { padding: 32px 24px 44px; }
+      .i-split { grid-template-columns: 1fr; }
+      .i-canvas { display: none; }
+      .plans-grid { grid-template-columns: 1fr 1fr; }
+    }
+
+    @media print {
+      .sidebar, .sidebar-toggle, .progress-bar { display: none !important; }
+      .main { margin-left: 0 !important; }
+      .section { display: block !important; }
+      footer { padding: 32px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- PROGRESS BAR -->
+<div class="progress-bar">
+  <div class="progress-fill" id="pbar" style="width:14%"></div>
+</div>
+
+<!-- SIDEBAR TOGGLE -->
+<button class="sidebar-toggle open" id="toggle" title="Menú" aria-label="Abrir o cerrar menú">
+  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <line x1="3" y1="6" x2="21" y2="6"/>
+    <line x1="3" y1="12" x2="21" y2="12"/>
+    <line x1="3" y1="18" x2="21" y2="18"/>
+  </svg>
+</button>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-head">
+    <div class="sidebar-brand">IA Masiva</div>
+    <div class="sidebar-guide-name">Claude Design</div>
+  </div>
+  <div class="sidebar-nav">
+    <div class="nav-item active" data-sec="intro" onclick="goTo('intro')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Introducción</span>
+    </div>
+    <div class="nav-item" data-sec="paso1" onclick="goTo('paso1')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Paso 1 · Encuentra Design</span>
+    </div>
+    <div class="nav-item" data-sec="paso2" onclick="goTo('paso2')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Paso 2 · Crea un proyecto</span>
+    </div>
+    <div class="nav-item" data-sec="paso3" onclick="goTo('paso3')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Paso 3 · Describe lo que quieres</span>
+    </div>
+    <div class="nav-item" data-sec="paso4" onclick="goTo('paso4')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Paso 4 · Itera tu diseño</span>
+    </div>
+    <div class="nav-item" data-sec="paso5" onclick="goTo('paso5')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Paso 5 · Exporta</span>
+    </div>
+    <div class="nav-item" data-sec="tips" onclick="goTo('tips')">
+      <span class="nav-dot"></span>
+      <span class="nav-step-label">Tips finales</span>
+    </div>
+  </div>
+</nav>
+
+<!-- MAIN -->
+<div class="main" id="main">
+
+  <!-- ══════════════ INTRO ══════════════ -->
+  <div class="section active" id="section-intro">
+    <div class="hero">
+      <div class="hero-inner">
+        <div class="eyebrow">Anthropic Labs · Ya disponible en beta</div>
+        <h1>Tú describes.<br/><span>Claude</span> lo construye.</h1>
+        <p class="hero-sub">Antes, los diseños venían genéricos y no impresionaban a nadie. Ahora tienes el control total: ves en tiempo real cómo se ve, y Claude ajusta todo lo que le pidas.</p>
+
+        <div class="before-block">
+          <div class="before-label">Antes de empezar · Acceso</div>
+          <h3>¿Quién puede usarlo?</h3>
+          <p>Claude Design está en versión beta. Está activo por defecto en estos planes:</p>
+          <div class="plans-grid">
+            <div class="plan-card featured">
+              <div class="plan-name">Pro</div>
+              <div class="plan-desc">Exploraciones rápidas y uso ocasional</div>
+              <span class="plan-tag">Disponible</span>
+            </div>
+            <div class="plan-card featured">
+              <div class="plan-name">Max 5x · 20x</div>
+              <div class="plan-desc">Uso semi-regular o intensivo según el tier</div>
+              <span class="plan-tag">Disponible</span>
+            </div>
+            <div class="plan-card featured">
+              <div class="plan-name">Team</div>
+              <div class="plan-desc">Para equipos con sistema de diseño compartido</div>
+              <span class="plan-tag">Disponible</span>
+            </div>
+            <div class="plan-card">
+              <div class="plan-name">Enterprise</div>
+              <div class="plan-desc">Desactivado por defecto. El admin debe habilitarlo.</div>
+            </div>
+          </div>
+        </div>
+
+        <button class="cta-btn" onclick="goTo('paso1')">
+          Ir al Paso 1
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PASO 1 ══════════════ -->
+  <div class="section" id="section-paso1">
+    <div class="step-header">
+      <div class="step-label">Paso 1 de 5</div>
+      <h2>Encuentra Design en la barra lateral</h2>
+      <p class="step-sub">Está ahí desde hoy. Solo tienes que saber dónde mirar.</p>
+    </div>
+    <div class="step-body">
+      <p>Abre Claude. En la barra lateral izquierda vas a ver una nueva opción: <strong>Design</strong>. Entra ahí. Lo primero que ves es el tablero con todos tus proyectos. Puedes crear uno nuevo, abrir uno que ya tenías, o elegir una plantilla para arrancar más rápido.</p>
+
+      <div class="items-list">
+        <div class="list-item">
+          <div class="list-icon">🖥️</div>
+          <div class="list-body">
+            <h4>Prototipos de apps y diseños web</h4>
+            <p>Cualquier interfaz que necesites: dashboard, landing page, formulario, flujo de onboarding. Sin código, sin Figma.</p>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon">📊</div>
+          <div class="list-body">
+            <h4>Presentaciones</h4>
+            <p>Le describes el tema y la estructura, y Claude genera la presentación completa. Tú ajustas lo que necesites.</p>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon">🗂️</div>
+          <div class="list-body">
+            <h4>Plantillas</h4>
+            <p>Si no sabes por dónde empezar, parte de una plantilla ya diseñada y modifícala a tu medida.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <p><strong>¿Qué es el botón de configuración?</strong> En el tablero hay un botón para configurar el sistema de diseño de tu marca. Ahí subes tus colores, tipografía y referencias visuales, y Claude las usa en cada proyecto que crees dentro de tu cuenta.</p>
+
+      <div class="tip">
+        <strong>Tip:</strong> Si tienes una empresa o marca personal, configura el sistema de diseño una sola vez. Desde ese momento, todo lo que Claude construya va a verse como tuyo y no como algo genérico.
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('intro')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Introducción
+        </button>
+        <button class="btn-next" onclick="goTo('paso2')">
+          Paso 2 — Crea un proyecto
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PASO 2 ══════════════ -->
+  <div class="section" id="section-paso2">
+    <div class="step-header">
+      <div class="step-label">Paso 2 de 5</div>
+      <h2>Crea tu primer proyecto</h2>
+      <p class="step-sub">La interfaz es simple: chat a la izquierda, tu diseño en vivo a la derecha.</p>
+    </div>
+    <div class="step-body">
+      <p>Dale en <strong>Nuevo proyecto</strong>. En cuanto lo creas, Claude hereda el sistema de diseño de tu cuenta: colores, fuentes, componentes. No tienes que configurar nada extra.</p>
+
+      <div class="interface-preview">
+        <div class="i-topbar">
+          <div class="mac-dot r"></div>
+          <div class="mac-dot y"></div>
+          <div class="mac-dot g"></div>
+        </div>
+        <div class="i-split">
+          <div class="i-chat">
+            <div class="i-pane-label">Chat</div>
+            <div class="bubble">Crea un dashboard que muestre mis ventas del mes con KPIs y una gráfica de barras.</div>
+            <div class="bubble reply">Listo. Armé el dashboard con 3 KPIs arriba y la gráfica abajo. ¿Cambiamos algo?</div>
+          </div>
+          <div class="i-canvas">
+            <div class="i-pane-label">Lienzo en vivo</div>
+            <div class="canvas-mock">
+              <div class="bar a"></div>
+              <div class="bar b"></div>
+              <div class="bar c"></div>
+              <div class="bar d"></div>
+              <div class="bar c"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <p>Eso es todo: tú describes en el chat, Claude construye en el lienzo. Lo ves mientras pasa. Nada de esperar, nada de exportar para ver cómo quedó.</p>
+
+      <div class="divider"></div>
+
+      <p><strong>¿Quieres darle contexto antes de empezar?</strong> Puedes adjuntar material de referencia en cualquier momento:</p>
+
+      <div class="items-list">
+        <div class="list-item">
+          <div class="list-icon">📎</div>
+          <div class="list-body">
+            <h4>Capturas de pantalla o imágenes</h4>
+            <p>Diseños que te gustan, pantallas de competidores, wireframes. Claude los entiende y los usa como referencia visual.</p>
+          </div>
+        </div>
+        <div class="list-item">
+          <div class="list-icon">💻</div>
+          <div class="list-body">
+            <h4>Base de código existente</h4>
+            <p>Si ya tienes un proyecto con componentes propios, vincula el repositorio. Claude construye sobre lo que ya tienes.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('paso1')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Paso 1
+        </button>
+        <button class="btn-next" onclick="goTo('paso3')">
+          Paso 3 — Describe lo que quieres
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PASO 3 ══════════════ -->
+  <div class="section" id="section-paso3">
+    <div class="step-header">
+      <div class="step-label">Paso 3 de 5</div>
+      <h2>Describe lo que quieres</h2>
+      <p class="step-sub">No necesitas saber diseño. Solo tienes que saber qué quieres.</p>
+    </div>
+    <div class="step-body">
+      <p>La clave es ser específico: qué estás construyendo, para quién es, y qué debe mostrar o incluir. Con eso, Claude tiene todo lo que necesita para generar algo que se vea bien desde el primer intento.</p>
+
+      <p>Usa el generador de abajo para construir tu primer prompt según lo que necesites crear:</p>
+
+      <!-- PROMPT BUILDER -->
+      <div class="builder">
+        <div class="builder-title">Generador de prompts</div>
+
+        <div class="builder-q">¿Qué quieres construir?</div>
+        <div class="type-pills">
+          <button class="type-pill" onclick="selectType(this,'dashboard')">Dashboard</button>
+          <button class="type-pill" onclick="selectType(this,'landing')">Landing page</button>
+          <button class="type-pill" onclick="selectType(this,'presentacion')">Presentación</button>
+          <button class="type-pill" onclick="selectType(this,'formulario')">Formulario</button>
+          <button class="type-pill" onclick="selectType(this,'app')">App móvil</button>
+          <button class="type-pill" onclick="selectType(this,'herramienta')">Herramienta interna</button>
+        </div>
+
+        <div class="builder-field" id="f-content">
+          <div class="b-label" id="lbl-content">¿Qué debe mostrar o incluir?</div>
+          <input class="b-input" id="inp-content" placeholder="" oninput="buildPrompt()" />
+        </div>
+        <div class="builder-field" id="f-audience">
+          <div class="b-label">¿Para quién es? <span style="font-weight:400;opacity:.7">(opcional)</span></div>
+          <input class="b-input" id="inp-audience" placeholder="Ej: mi equipo de ventas, clientes nuevos, yo mismo…" oninput="buildPrompt()" />
+        </div>
+
+        <div class="builder-output" id="builder-output">
+          <div class="output-label">Prompt listo para copiar</div>
+          <div class="output-text" id="output-text"></div>
+          <button class="copy-btn-out" id="copy-out" onclick="copyPrompt()" title="Copiar">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="note">
+        <strong>Nota:</strong> Si Claude necesita más información para generar bien el diseño, te lo va a preguntar en el chat. No pasa nada, es parte del proceso.
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('paso2')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Paso 2
+        </button>
+        <button class="btn-next" onclick="goTo('paso4')">
+          Paso 4 — Itera tu diseño
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PASO 4 ══════════════ -->
+  <div class="section" id="section-paso4">
+    <div class="step-header">
+      <div class="step-label">Paso 4 de 5</div>
+      <h2>Itera tu diseño</h2>
+      <p class="step-sub">La primera versión es el punto de partida. El valor real está en lo que haces después.</p>
+    </div>
+    <div class="step-body">
+      <p>Tienes dos formas de pedirle cambios a Claude. Cada una sirve para cosas distintas:</p>
+
+      <table class="guide-table">
+        <thead>
+          <tr>
+            <th>Usa el chat cuando…</th>
+            <th>Usa comentarios en línea cuando…</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>"Haz la paleta de colores más oscura y minimalista"</td>
+            <td>Quieres cambiar un botón específico</td>
+          </tr>
+          <tr>
+            <td>"Reorganiza el dashboard para que los KPIs estén arriba"</td>
+            <td>Necesitas ajustar el espaciado de un elemento</td>
+          </tr>
+          <tr>
+            <td>"Añade un panel de configuración en el lado derecho"</td>
+            <td>Quieres cambiar un texto puntual</td>
+          </tr>
+          <tr>
+            <td>"Muéstrame 2 o 3 versiones alternativas de esta pantalla"</td>
+            <td>Quieres hacer colapsar una sección</td>
+          </tr>
+        </tbody>
+      </table>
+
+      <p>Para los comentarios en línea: haz clic directamente sobre la parte del diseño que quieres cambiar y escribe el comentario ahí. Es más rápido que describir la ubicación en el chat.</p>
+
+      <div class="note">
+        <strong>Problema conocido:</strong> A veces los comentarios en línea desaparecen antes de que Claude los lea. Si eso pasa, pega el comentario directo en el chat. Funciona igual.
+      </div>
+
+      <div class="divider"></div>
+
+      <p><strong>¿Quieres explorar una dirección diferente sin perder lo que tienes?</strong> Dile a Claude:</p>
+
+      <div class="prompt-box">
+        <div class="prompt-label">Ejemplo</div>
+        <p>Guarda lo que tenemos e intenta un enfoque completamente diferente.</p>
+      </div>
+
+      <p class="muted">Claude guarda el proyecto actual y confirma dónde está, para que puedas volver a él si lo necesitas.</p>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('paso3')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Paso 3
+        </button>
+        <button class="btn-next" onclick="goTo('paso5')">
+          Paso 5 — Exporta
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ PASO 5 ══════════════ -->
+  <div class="section" id="section-paso5">
+    <div class="step-header">
+      <div class="step-label">Paso 5 de 5</div>
+      <h2>Exporta o comparte</h2>
+      <p class="step-sub">Tu diseño listo. Tú decides en qué formato lo necesitas.</p>
+    </div>
+    <div class="step-body">
+      <p>Cuando estés satisfecho, dale en el botón <strong>Exportar</strong> en la esquina superior derecha. Elige el formato según lo que vayas a hacer con el diseño:</p>
+
+      <div class="export-grid">
+        <div class="export-card">
+          <div class="export-icon">📄</div>
+          <h4>PDF</h4>
+          <p>Para presentar a clientes o compartir como documento.</p>
+        </div>
+        <div class="export-card">
+          <div class="export-icon">📊</div>
+          <h4>PPTX</h4>
+          <p>Para abrir en PowerPoint y seguir editando desde ahí.</p>
+        </div>
+        <div class="export-card">
+          <div class="export-icon">🌐</div>
+          <h4>HTML</h4>
+          <p>Un archivo web independiente que funciona en cualquier navegador.</p>
+        </div>
+        <div class="export-card">
+          <div class="export-icon">🎨</div>
+          <h4>Canva</h4>
+          <p>Lo envías directo a Canva para seguir editando con sus herramientas.</p>
+        </div>
+        <div class="export-card">
+          <div class="export-icon">⚡</div>
+          <h4>Claude Code</h4>
+          <p>Lo convierte en código funcional listo para producción.</p>
+        </div>
+        <div class="export-card">
+          <div class="export-icon">📦</div>
+          <h4>ZIP</h4>
+          <p>Descarga todos los archivos del proyecto empaquetados.</p>
+        </div>
+      </div>
+
+      <div class="divider"></div>
+
+      <p><strong>¿Quieres que alguien más lo vea?</strong> También puedes compartir el proyecto con un enlace: solo lectura, para comentarios o para que editen directamente.</p>
+
+      <div class="tip">
+        <strong>Recomendación:</strong> Si vas a pasarle el diseño a un desarrollador, usa <strong>Claude Code</strong>. Ya sabe cómo leer lo que Claude generó y no hay que explicarle nada.
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('paso4')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Paso 4
+        </button>
+        <button class="btn-next" onclick="goTo('tips')">
+          Tips finales
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ TIPS ══════════════ -->
+  <div class="section" id="section-tips">
+    <div class="step-header">
+      <div class="step-label">Para sacar el máximo</div>
+      <h2>Tips que sí funcionan</h2>
+      <p class="step-sub">Lo que separa un resultado bueno de uno que parece profesional.</p>
+    </div>
+    <div class="step-body">
+      <div class="tips-list">
+        <div class="tip-card">
+          <div class="tip-num">1</div>
+          <div class="tip-body">
+            <h4>Empieza simple, luego añade complejidad</h4>
+            <p>Primero el diseño base y el contenido principal. Después agregas interacciones, casos edge y pulido visual. Claude responde mejor a solicitudes incrementales que a mega-prompts con todo de una.</p>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">2</div>
+          <div class="tip-body">
+            <h4>Sé específico en tu feedback</h4>
+            <p>"Esto no se ve bien" no le sirve a nadie. "Reduce el espaciado entre campos a 8px" sí. Cuanto más claro sea lo que quieres, menos vueltas da.</p>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">3</div>
+          <div class="tip-body">
+            <h4>Pide variaciones</h4>
+            <p>Si no estás seguro de la dirección, pídele que te muestre 2 o 3 opciones. Comparar alternativas es diez veces más rápido que intentar adivinar qué funciona.</p>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">4</div>
+          <div class="tip-body">
+            <h4>Menciona desde el inicio si necesitas responsive</h4>
+            <p>Si tu diseño tiene que funcionar en móvil, tableta y escritorio, díselo al principio. No al final, cuando ya está construido para un solo tamaño.</p>
+          </div>
+        </div>
+        <div class="tip-card">
+          <div class="tip-num">5</div>
+          <div class="tip-body">
+            <h4>Trátalo como un colaborador, no como una herramienta</h4>
+            <p>Puedes pedirle que revise el diseño, que evalúe si la información está bien ordenada o que te diga qué cambiaría él. Claude tiene criterio de diseño, úsalo.</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="nav-btns">
+        <button class="btn-back" onclick="goTo('paso5')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          Paso 5
+        </button>
+      </div>
+    </div>
+
+    <footer>
+      <p><strong>IA MASIVA</strong></p>
+      <p>TikTok: <a href="https://tiktok.com/@iamasiva" target="_blank">@iamasiva</a> · Instagram: <a href="https://instagram.com/@iamasivaa" target="_blank">@iamasivaa</a></p>
+      <p style="margin-top:6px;color:#5A4030;">Guía de Claude Design · Anthropic Labs</p>
+    </footer>
+  </div>
+
+</div><!-- /main -->
+
+<script>
+  // ─── DATA ─────────────────────────────────────────────────────
+  var SECTIONS = ['intro','paso1','paso2','paso3','paso4','paso5','tips'];
+
+  var TYPE_CFG = {
+    dashboard:   { lbl: '¿Qué métricas o datos debe mostrar?',      ph: 'Ej: ventas del mes, número de clientes, tasa de conversión' },
+    landing:     { lbl: '¿Qué producto o servicio es?',             ph: 'Ej: mi agencia de diseño, un curso online de finanzas' },
+    presentacion:{ lbl: '¿Sobre qué tema es la presentación?',      ph: 'Ej: resultados Q1 de mi empresa, propuesta para un cliente' },
+    formulario:  { lbl: '¿Qué información vas a recopilar?',        ph: 'Ej: datos de contacto + preferencias de servicio' },
+    app:         { lbl: '¿Qué hace la app?',                        ph: 'Ej: registrar gastos personales, ver el estado de pedidos' },
+    herramienta: { lbl: '¿Para qué sirve la herramienta?',          ph: 'Ej: revisar y aprobar solicitudes de vacaciones del equipo' },
+  };
+
+  var TYPE_TPL = {
+    dashboard:   'Crea un dashboard que muestre {c}. Diseño limpio, con los KPIs principales en la parte superior y los gráficos debajo.{a}',
+    landing:     'Diseña una landing page para {c}. Incluye: sección hero, propuesta de valor, beneficios clave, llamada a la acción y footer.{a}',
+    presentacion:'Construye una presentación sobre {c}. Diapositivas claras, con estructura lógica, títulos fuertes y espacio para visuales.{a}',
+    formulario:  'Crea un formulario para recopilar {c}. Con validación de campos, diseño claro y mensaje de confirmación al enviar.{a}',
+    app:         'Diseña el flujo principal de una app móvil que {c}. Incluye las pantallas principales con navegación entre ellas.{a}',
+    herramienta: 'Construye una herramienta interna para {c}. Interfaz funcional, simple y clara, sin elementos decorativos innecesarios.{a}',
+  };
+
+  // ─── STATE ────────────────────────────────────────────────────
+  var current     = 'intro';
+  var sidebarOpen = true;
+  var selType     = null;
+
+  // ─── NAVIGATION ───────────────────────────────────────────────
+  function goTo(id) {
+    // deactivate current
+    document.getElementById('section-' + current).classList.remove('active');
+    var prevNav = document.querySelector('[data-sec="' + current + '"]');
+    prevNav.classList.remove('active');
+    if (current !== id) prevNav.classList.add('done');
+
+    // activate new
+    current = id;
+    document.getElementById('section-' + id).classList.add('active');
+    var nextNav = document.querySelector('[data-sec="' + id + '"]');
+    nextNav.classList.add('active');
+    nextNav.classList.remove('done');
+
+    // progress bar
+    var idx = SECTIONS.indexOf(id);
+    var pct = Math.round((idx + 1) / SECTIONS.length * 100);
+    document.getElementById('pbar').style.width = pct + '%';
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // close sidebar on mobile after nav
+    if (window.innerWidth < 720) setSidebar(false);
+  }
+
+  // ─── SIDEBAR ──────────────────────────────────────────────────
+  function setSidebar(open) {
+    var sidebar = document.getElementById('sidebar');
+    var mainEl  = document.getElementById('main');
+    var btn     = document.getElementById('toggle');
+    if (open) {
+      sidebar.classList.remove('collapsed');
+      mainEl.classList.remove('full');
+      btn.classList.add('open');
+    } else {
+      sidebar.classList.add('collapsed');
+      mainEl.classList.add('full');
+      btn.classList.remove('open');
+    }
+    sidebarOpen = open;
+  }
+
+  document.getElementById('toggle').addEventListener('click', function () {
+    setSidebar(!sidebarOpen);
+  });
+
+  // On mobile, start collapsed
+  if (window.innerWidth < 720) setSidebar(false);
+
+  // ─── PROMPT BUILDER ───────────────────────────────────────────
+  function selectType(btn, type) {
+    document.querySelectorAll('.type-pill').forEach(function (b) { b.classList.remove('sel'); });
+    btn.classList.add('sel');
+    selType = type;
+
+    var cfg = TYPE_CFG[type];
+    document.getElementById('lbl-content').textContent = cfg.lbl;
+    document.getElementById('inp-content').placeholder  = cfg.ph;
+    document.getElementById('inp-content').value        = '';
+    document.getElementById('inp-audience').value       = '';
+    document.getElementById('f-content').classList.add('show');
+    document.getElementById('f-audience').classList.add('show');
+    document.getElementById('builder-output').classList.remove('show');
+  }
+
+  function buildPrompt() {
+    if (!selType) return;
+    var content  = document.getElementById('inp-content').value.trim();
+    var audience = document.getElementById('inp-audience').value.trim();
+    if (!content) { document.getElementById('builder-output').classList.remove('show'); return; }
+
+    var audienceStr = audience ? ' Va a usarlo: ' + audience + '.' : '';
+    var result = TYPE_TPL[selType]
+      .replace('{c}', content)
+      .replace('{a}', audienceStr)
+      .replace(/\s+\.$/, '.')
+      .trim();
+
+    document.getElementById('output-text').textContent = result;
+    document.getElementById('builder-output').classList.add('show');
+  }
+
+  function copyPrompt() {
+    var text = document.getElementById('output-text').textContent;
+    var btn  = document.getElementById('copy-out');
+    var iconCopy  = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>';
+    var iconCheck = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+    navigator.clipboard.writeText(text).then(function () {
+      btn.innerHTML = iconCheck;
+      btn.classList.add('copied');
+      setTimeout(function () {
+        btn.innerHTML = iconCopy;
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  }
+</script>
+
+</body>
+</html>
